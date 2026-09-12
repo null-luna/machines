@@ -1,0 +1,57 @@
+@echo off
+setlocal
+
+title 192 GiB Windows Configuration Tool
+
+set "DISK=1"
+set "SCRIPT=%TEMP%\diskpart_script.txt"
+
+echo ===================================================
+echo        192 GiB Windows Configuration Tool
+echo ===================================================
+echo.
+echo WARNING:
+echo This will COMPLETELY ERASE Disk %DISK%.
+echo.
+echo Disks currently attached to this system:
+echo list disk | diskpart
+echo.
+echo Verify that Disk %DISK% above is the intended target (check size/type).
+set /p "CONFIRM=Type the disk number to erase, exactly, to continue: "
+if not "%CONFIRM%"=="%DISK%" (
+    echo.
+    echo Input "%CONFIRM%" does not match target Disk %DISK%. Aborting - no changes made.
+    pause
+    exit /b 1
+)
+
+echo Generating DiskPart script...
+
+(
+    echo select disk %DISK%
+    echo clean
+    echo convert gpt
+    echo create partition efi size=1024
+    echo format quick fs=fat32 label="System"
+    echo create partition msr size=64
+    echo create partition primary size=196608
+    echo format quick fs=ntfs label="Windows"
+    echo create partition primary size=1024
+    echo format quick fs=ntfs label="Recovery"
+    echo set id=de94bba4-06d1-4d40-a16a-bfd50179d6ac
+    echo gpt attributes=0x8000000000000001
+) > "%SCRIPT%"
+
+echo.
+echo Running DiskPart...
+diskpart /s "%SCRIPT%"
+
+if exist "%SCRIPT%" del "%SCRIPT%"
+
+echo.
+echo ===================================================
+echo           Disk configuration complete.
+echo ===================================================
+echo.
+pause
+exit /b

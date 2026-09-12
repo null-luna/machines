@@ -1,0 +1,19 @@
+# Purpose:   Command-line options for the chronyd daemon.
+# Scope:     The startup environment of chronyd.service, read from
+#            /etc/sysconfig/chronyd and passed to chronyd as $OPTIONS.
+# Requires:  /var/lib/chrony/drift, for the -s option.
+# Reference: chronyd(8).
+#
+# -s   Breaks the startup deadlock between DNS and the clock. Before any name
+#      is resolved, it moves the system clock forward to the time the drift
+#      file was last written, which is the last time chronyd ran. Certificate
+#      date checks can then succeed even if the hardware clock has failed or
+#      been reset. This covers chronyd's own key exchanges and any encrypted
+#      DNS the local resolver uses.
+#
+# -F 2 Turn on the system call filter at level 2, which blocks a small set of
+#      high-risk calls such as fork and exec. Level 1 instead permits only the
+#      calls chronyd is expected to make, which is stricter but can kill the
+#      daemon when a system library makes an unexpected one. Level 2 gives up
+#      some of that protection in exchange for not doing so.
+OPTIONS="-s -F 2"

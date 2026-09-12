@@ -1,0 +1,6 @@
+Using Fedora Everything (NetInstaller ISO)
+
+Fedora Custom Operating System > Common NetworkManager SubModules + Standard + KDE
+
+sudo dnf group install hardware-support
+sudo dnf group install fonts

@@ -11,7 +11,7 @@ Everything here is a drop-in file or a reference document, not an installer — 
   - `encrypted-dns/` and `proxy-dns/` are two **alternative** encrypted-DNS stacks — deploy one, not both. Under `encrypted-dns/`, systemd-resolved speaks DNS-over-TLS directly to public resolvers; under `proxy-dns/`, it forwards to a local `dnscrypt-proxy` instead.
   - `90-disable-nm-dns.conf` takes NetworkManager out of the DNS path.
   - `99-net-transport-optimization.conf` is a heavily-annotated sysctl drop-in (BBR/fq, ECN, MTU blackhole recovery, buffer ceilings).
-  - `nts/` configures chrony for NTS-only (authenticated), non-smearing time sync.
+  - `nts/` and `unencrypted-ntp/` are two **alternative** chrony configs — deploy one, not both. `nts/` is NTS-only (authenticated) and non-smearing; `unencrypted-ntp/` is plain, unauthenticated NTP against Google and Amazon, which hide leap seconds behind a shared 24-hour linear smear (12:00 UTC → 12:00 UTC).
   - Each DNS variant ships a `time-sync-rescue.md` runbook for the cold-boot DNS/clock deadlock (see Notes).
 - **`windows/`** — Group Policy privacy hardening checklist, `winget` app lists, a UTC-RTC registry tweak, a disk-partitioning script, and misc hardware/app config notes.
 
@@ -19,7 +19,7 @@ Everything here is a drop-in file or a reference document, not an installer — 
 
 There's no single install script; apply the pieces you want by hand.
 
-**Linux drop-ins** (pick one of `encrypted-dns/` or `proxy-dns/` for the DNS line):
+**Linux drop-ins** (pick one of `encrypted-dns/` or `proxy-dns/` for the DNS line, and one of `nts/` or `unencrypted-ntp/` for the time line):
 
 ```bash
 sudo cp linux/networking/90-disable-nm-dns.conf /etc/NetworkManager/conf.d/
@@ -29,6 +29,8 @@ sudo cp linux/networking/encrypted-dns/90-dns-strict-policy.conf /etc/systemd/re
 
 sudo cp linux/networking/nts/chrony.conf /etc/chrony.conf
 sudo cp linux/networking/nts/chronyd /etc/sysconfig/chronyd
+# or: sudo cp linux/networking/unencrypted-ntp/chrony.conf /etc/chrony.conf
+#     sudo cp linux/networking/unencrypted-ntp/chronyd /etc/sysconfig/chronyd
 
 sudo systemctl restart NetworkManager systemd-resolved chronyd
 sudo sysctl -p /etc/sysctl.d/99-net-transport-optimization.conf
@@ -51,7 +53,7 @@ Then run the lines in `windows/apps.txt` (or `apps-for-others.txt`) through `win
 
 ## Requirements
 
-- Linux side: systemd-resolved and NetworkManager (Fedora KDE defaults); `dnscrypt-proxy` only if using the `proxy-dns/` variant; chrony 4.6+ for NTS.
+- Linux side: systemd-resolved and NetworkManager (Fedora KDE defaults); `dnscrypt-proxy` only if using the `proxy-dns/` variant; chrony 4.6+ for the `nts/` variant, 4.0+ for `unencrypted-ntp/`.
 - Windows side: `winget`; Pro/Enterprise/Education edition for `gpedit.msc`.
 
 ## Notes

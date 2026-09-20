@@ -1,0 +1,23 @@
+# Purpose:   Command-line options for the chronyd daemon.
+# Scope:     The startup environment of chronyd.service, read from
+#            /etc/sysconfig/chronyd and passed to chronyd as $OPTIONS.
+# Requires:  /var/lib/chrony/drift, for the -s option.
+# Reference: chronyd(8).
+#
+# This is an alternative to ../nts/chronyd, not a companion to it. The
+# options are identical; only the reason for -s has narrowed.
+#
+# -s   Before any name is resolved, moves the system clock forward to the
+#      time the drift file was last written, which is the last time chronyd
+#      ran. Plain NTP presents no certificates, so chronyd no longer needs
+#      this for itself, but the rest of the system still does: an encrypted
+#      DNS resolver cannot complete a TLS handshake with a hardware clock
+#      that has failed or been reset, and until it can, the server names in
+#      chrony.conf do not resolve.
+#
+# -F 2 Turn on the system call filter at level 2, which blocks a small set of
+#      high-risk calls such as fork and exec. Level 1 instead permits only the
+#      calls chronyd is expected to make, which is stricter but can kill the
+#      daemon when a system library makes an unexpected one. Level 2 gives up
+#      some of that protection in exchange for not doing so.
+OPTIONS="-s -F 2"
